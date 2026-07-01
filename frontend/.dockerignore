@@ -1,0 +1,4 @@
+# Solo file statici nel contesto: niente roba di sistema/editor
+.DS_Store
+Thumbs.db
+.env

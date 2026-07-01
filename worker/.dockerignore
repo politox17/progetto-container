@@ -1,0 +1,4 @@
+# Le dipendenze si installano nell'immagine: niente node_modules dal locale
+node_modules/
+npm-debug.log*
+.env

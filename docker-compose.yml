@@ -1,0 +1,97 @@
+# Stack della libreria:
+# Registry -> Frontend -> API -> PostgreSQL + RabbitMQ -> Worker
+# Portainer serve per monitorare i container.
+
+services:
+  # Registry Docker locale
+  registry:
+    image: registry:2
+    container_name: lib-registry
+    ports:
+      - "5000:5000"
+    volumes:
+      - registrydata:/var/lib/registry
+
+  # RabbitMQ
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: lib-rabbitmq
+    env_file: .env
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  # Database PostgreSQL
+  postgres:
+    image: postgres:16-alpine
+    container_name: lib-postgres
+    env_file: .env
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./db/init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  # API FastAPI
+  api:
+    build: ./api
+    image: localhost:5000/lib-api:1.0
+    container_name: lib-api
+    ports:
+      - "8000:8000"
+    env_file: .env
+    environment:
+      RABBITMQ_HOST: rabbitmq
+      POSTGRES_HOST: postgres
+      CORS_ORIGINS: "http://localhost:8080,http://127.0.0.1:8080"
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+
+  # Worker Node.js
+  worker:
+    build: ./worker
+    image: localhost:5000/lib-worker:1.0
+    env_file: .env
+    environment:
+      RABBITMQ_HOST: rabbitmq
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+    restart: on-failure
+
+  # Frontend con Nginx
+  frontend:
+    build: ./frontend
+    image: localhost:5000/lib-frontend:1.0
+    container_name: lib-frontend
+    ports:
+      - "8080:80"
+    depends_on:
+      - api
+
+  # Interfaccia di gestione Docker
+  portainer:
+    image: portainer/portainer-ce:2.21.4
+    container_name: lib-portainer
+    ports:
+      - "9443:9443"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - portainer_data:/data
+    restart: unless-stopped
+
+volumes:
+  pgdata:
+  registrydata:
+  portainer_data:

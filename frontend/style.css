@@ -1,0 +1,49 @@
+/* Stile minimo del frontend libreria */
+* { box-sizing: border-box; }
+
+body {
+  font-family: system-ui, Arial, sans-serif;
+  max-width: 640px;
+  margin: 0 auto;
+  padding: 1.5rem;
+  color: #222;
+  background: #fafafa;
+}
+
+header h1 { margin-bottom: 0.2rem; }
+header p { color: #666; margin-top: 0; }
+
+section {
+  background: #fff;
+  border: 1px solid #e2e2e2;
+  border-radius: 8px;
+  padding: 1rem 1.25rem;
+  margin-bottom: 1.25rem;
+}
+
+#catalogo { padding-left: 1.2rem; }
+#catalogo li { margin: 0.25rem 0; }
+
+form { display: flex; flex-direction: column; gap: 0.75rem; }
+label { display: flex; flex-direction: column; font-size: 0.9rem; gap: 0.25rem; }
+input, select {
+  padding: 0.5rem;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  font-size: 1rem;
+}
+
+button {
+  padding: 0.6rem 1rem;
+  border: none;
+  border-radius: 6px;
+  background: #2563eb;
+  color: #fff;
+  font-size: 1rem;
+  cursor: pointer;
+}
+button:hover { background: #1d4ed8; }
+
+.esito { margin-top: 0.75rem; font-weight: 600; min-height: 1.2em; }
+.esito.ok { color: #15803d; }
+.esito.ko { color: #b91c1c; }

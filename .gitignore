@@ -1,0 +1,25 @@
+# --- Node.js (worker, frontend) ---
+node_modules/
+npm-debug.log*
+
+# --- Python (api) ---
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+env/
+
+# --- Dati / volumi persistenti (DB, broker) ---
+data/
+*.sqlite
+*.db
+pgdata/
+
+# --- Segreti ---
+.env
+
+# --- Sistema / editor ---
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/

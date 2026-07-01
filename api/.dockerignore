@@ -1,0 +1,6 @@
+# Tiene fuori dal contesto di build i file inutili/pesanti
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.env

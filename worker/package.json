@@ -1,0 +1,13 @@
+{
+  "name": "lib-worker",
+  "version": "1.0.0",
+  "description": "Worker Node.js: consuma la coda 'notifiche' e logga le notifiche",
+  "main": "index.js",
+  "type": "commonjs",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "amqplib": "^0.10.4"
+  }
+}

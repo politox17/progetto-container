@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<!-- Frontend libreria — Passo 3. HTML + JS statico servito da Nginx. -->
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Libreria — Prestiti</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header>
+    <h1>📚 Libreria</h1>
+    <p>Catalogo libri e richiesta prestiti</p>
+  </header>
+
+  <main>
+    <!-- Catalogo: per ora lista statica lato JS (il DB arriva al Passo 4) -->
+    <section>
+      <h2>Catalogo</h2>
+      <ul id="catalogo"></ul>
+    </section>
+
+    <!-- Form prestito: chiama POST /prestiti dell'API -->
+    <section>
+      <h2>Nuovo prestito</h2>
+      <form id="form-prestito">
+        <label>
+          Utente
+          <input type="text" id="utente" required placeholder="es. mario" />
+        </label>
+        <label>
+          Libro
+          <select id="libro" required></select>
+        </label>
+        <label>
+          Scadenza
+          <input type="date" id="scadenza" required />
+        </label>
+        <button type="submit">Richiedi prestito</button>
+      </form>
+      <p id="esito" class="esito"></p>
+    </section>
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>
