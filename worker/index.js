@@ -1,13 +1,3 @@
-/**
- * Worker libreria — Passo 2 della fetta verticale.
- *
- * Consuma la coda "notifiche" e logga ogni messaggio ricevuto.
- * - ack MANUALE: il messaggio viene rimosso dalla coda solo dopo che il
- *   worker ha finito di gestirlo → se il worker crasha a metà, il messaggio
- *   torna in coda e non si perde (requisito d'esame).
- * - retry alla partenza: RabbitMQ impiega ~10s ad accettare connessioni,
- *   quindi se la connessione fallisce riprovo invece di crashare.
- */
 
 const amqp = require("amqplib");
 
