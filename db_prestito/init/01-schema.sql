@@ -14,7 +14,8 @@ CREATE TABLE IF NOT EXISTS prestiti (
     utente    TEXT NOT NULL,
     libro     TEXT NOT NULL,
     scadenza  DATE NOT NULL,
-    creato_at TIMESTAMPTZ NOT NULL DEFAULT now()
+    creato_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    aggiornato_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
 -- Seed: qualche libro così il catalogo non è vuoto al primo avvio.

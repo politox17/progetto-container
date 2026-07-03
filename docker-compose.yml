@@ -1,5 +1,5 @@
 # Stack della libreria:
-# Registry -> Frontend -> API -> PostgreSQL + RabbitMQ -> Worker
+# Registry -> Frontend -> microservizi -> PostgreSQL + RabbitMQ -> Worker
 # Portainer serve per monitorare i container.
 
 services:
@@ -26,39 +26,75 @@ services:
       timeout: 5s
       retries: 10
 
-  # Database PostgreSQL
-  postgres:
+  # Database PostgreSQL del microservizio prestito
+  postgres_prestito:
     image: postgres:16-alpine
-    container_name: lib-postgres
+    container_name: lib-postgres-prestito
     env_file: .env
     volumes:
-      - pgdata:/var/lib/postgresql/data
-      - ./db/init:/docker-entrypoint-initdb.d:ro
+      - pgdata_prestito:/var/lib/postgresql/data
+      - ./db_prestito/init:/docker-entrypoint-initdb.d:ro
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
       interval: 5s
       timeout: 5s
       retries: 10
 
-  # API FastAPI
-  api:
-    build: ./api
-    image: localhost:5000/lib-api:1.0
-    container_name: lib-api
+  # Database PostgreSQL del microservizio modifica
+  postgres_modifica:
+    image: postgres:16-alpine
+    container_name: lib-postgres-modifica
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: libreria_modifica
+    volumes:
+      - pgdata_modifica:/var/lib/postgresql/data
+      - ./db_modifica/init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d libreria_modifica"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  # Microservizio prestito: crea prestiti e consuma modifiche asincrone
+  prestito:
+    build: ./prestito
+    image: localhost:5000/lib-prestito:1.0
+    container_name: lib-prestito
     ports:
       - "8000:8000"
     env_file: .env
     environment:
       RABBITMQ_HOST: rabbitmq
-      POSTGRES_HOST: postgres
+      POSTGRES_HOST: postgres_prestito
       CORS_ORIGINS: "http://localhost:8080,http://127.0.0.1:8080"
     depends_on:
       rabbitmq:
         condition: service_healthy
-      postgres:
+      postgres_prestito:
         condition: service_healthy
 
-  # Worker Node.js
+  # Microservizio modifica: aggiorna il proprio DB e pubblica eventi
+  modifica:
+    build: ./modifica
+    image: localhost:5000/lib-modifica:1.0
+    container_name: lib-modifica
+    ports:
+      - "8001:8001"
+    env_file: .env
+    environment:
+      RABBITMQ_HOST: rabbitmq
+      POSTGRES_HOST: postgres_modifica
+      POSTGRES_DB: libreria_modifica
+      CORS_ORIGINS: "http://localhost:8080,http://127.0.0.1:8080"
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+      postgres_modifica:
+        condition: service_healthy
+
+  # Worker Node.js: consuma le notifiche applicative
   worker:
     build: ./worker
     image: localhost:5000/lib-worker:1.0
@@ -78,7 +114,8 @@ services:
     ports:
       - "8080:80"
     depends_on:
-      - api
+      - prestito
+      - modifica
 
   # Interfaccia di gestione Docker
   portainer:
@@ -92,6 +129,7 @@ services:
     restart: unless-stopped
 
 volumes:
-  pgdata:
+  pgdata_prestito:
+  pgdata_modifica:
   registrydata:
   portainer_data:

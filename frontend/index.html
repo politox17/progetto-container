@@ -1,26 +1,23 @@
 <!DOCTYPE html>
-<!-- Frontend libreria — Passo 3. HTML + JS statico servito da Nginx. -->
 <html lang="it">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Libreria — Prestiti</title>
+  <title>Libreria - Prestiti</title>
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
   <header>
-    <h1>📚 Libreria</h1>
-    <p>Catalogo libri e richiesta prestiti</p>
+    <h1>Libreria</h1>
+    <p>Catalogo libri, prestiti e modifiche asincrone</p>
   </header>
 
   <main>
-    <!-- Catalogo: per ora lista statica lato JS (il DB arriva al Passo 4) -->
     <section>
       <h2>Catalogo</h2>
       <ul id="catalogo"></ul>
     </section>
 
-    <!-- Form prestito: chiama POST /prestiti dell'API -->
     <section>
       <h2>Nuovo prestito</h2>
       <form id="form-prestito">
@@ -39,6 +36,41 @@
         <button type="submit">Richiedi prestito</button>
       </form>
       <p id="esito" class="esito"></p>
+    </section>
+
+    <section>
+      <div class="section-title">
+        <h2>Modifica prestiti</h2>
+        <button type="button" id="aggiorna-prestiti" class="secondary">Aggiorna</button>
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Utente</th>
+              <th>Libro</th>
+              <th>Scadenza</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="prestiti-modificabili"></tbody>
+        </table>
+      </div>
+
+      <form id="form-modifica" class="form-inline">
+        <label>
+          ID prestito
+          <input type="number" id="prestito-id" required min="1" />
+        </label>
+        <label>
+          Nuova scadenza
+          <input type="date" id="nuova-scadenza" required />
+        </label>
+        <button type="submit">Salva modifica</button>
+      </form>
+      <p id="esito-modifica" class="esito"></p>
     </section>
   </main>
 
