@@ -1,7 +1,4 @@
--- Passo 4 — schema + seed della libreria.
--- Questo script viene eseguito da Postgres SOLO alla prima inizializzazione
--- del volume dati (cartella /docker-entrypoint-initdb.d). Sui riavvii
--- successivi, con il volume già popolato, NON viene rieseguito.
+
 
 CREATE TABLE IF NOT EXISTS libri (
     id     SERIAL PRIMARY KEY,
