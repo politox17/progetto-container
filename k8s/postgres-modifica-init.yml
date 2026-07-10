@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: postgres-modifica-init
+data:
+  01-schema.sql: |
+    CREATE TABLE IF NOT EXISTS prestiti_modificabili (
+        id INTEGER PRIMARY KEY,
+        utente TEXT NOT NULL,
+        libro TEXT NOT NULL,
+        scadenza DATE NOT NULL,
+        modificato_at TIMESTAMPTZ,
+        sincronizzato_at TIMESTAMPTZ NOT NULL DEFAULT now()
+    );

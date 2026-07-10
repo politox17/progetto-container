@@ -5,6 +5,7 @@ metadata:
   annotations:
     traefik.ingress.kubernetes.io/router.entrypoints: web
 spec:
+  ingressClassName: traefik
   rules:
     - host: localhost
       http:
@@ -15,4 +16,4 @@ spec:
               service:
                 name: frontend
                 port:
-                  number: 8080
+                  number: 80

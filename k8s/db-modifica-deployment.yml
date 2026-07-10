@@ -1,16 +1,16 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: postgres-prestito
+  name: postgres-modifica
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: postgres-prestito
+      app: postgres-modifica
   template:
     metadata:
       labels:
-        app: postgres-prestito
+        app: postgres-modifica
     spec:
       containers:
         - name: postgres
@@ -19,7 +19,7 @@ spec:
             - containerPort: 5432
           env:
             - name: POSTGRES_DB
-              value: libreria
+              value: libreria_modifica
             - name: POSTGRES_USER
               valueFrom:
                 secretKeyRef:
@@ -50,7 +50,7 @@ spec:
       volumes:
         - name: postgres-data
           persistentVolumeClaim:
-            claimName: postgres-prestito-pvc
+            claimName: postgres-modifica-pvc
         - name: init-scripts
           configMap:
-            name: postgres-prestito-init
+            name: postgres-modifica-init

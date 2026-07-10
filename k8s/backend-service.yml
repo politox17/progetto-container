@@ -1,12 +1,12 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: backend
+  name: prestito
 spec:
   selector:
-    app: backend
+    app: prestito
   ports:
-    - port: 5000
-      targetPort: 5000
+    - port: 8000
+      targetPort: 8000
       protocol: TCP
   type: ClusterIP

@@ -5,3 +5,10 @@ metadata:
 data:
   APP_ENV: "development"
   LOG_LEVEL: "info"
+  RABBITMQ_HOST: "rabbitmq"
+  EVENT_EXCHANGE: "libreria.eventi"
+  CODA_NOTIFICHE: "notifiche"
+  PRESTITO_SYNC_QUEUE: "prestito.sync.modifiche"
+  MODIFICA_SYNC_QUEUE: "modifica.sync.prestiti"
+  POSTGRES_PORT: "5432"
+  CORS_ORIGINS: "http://localhost,http://127.0.0.1"

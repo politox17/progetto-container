@@ -14,9 +14,7 @@ spec:
     spec:
       containers:
         - name: frontend
-          image: <TUO_FRONTEND_IMAGE>
+          image: frontend:latest
+          imagePullPolicy: IfNotPresent
           ports:
-            - containerPort: 8080
-          env:
-            - name: BACKEND_URL
-              value: "http://backend:5000"
+            - containerPort: 80

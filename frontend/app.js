@@ -1,5 +1,5 @@
-const PRESTITO_API_BASE = "http://localhost:8000";
-const MODIFICA_API_BASE = "http://localhost:8001";
+const PRESTITO_API_BASE = `${window.location.origin}/api/prestito`;
+const MODIFICA_API_BASE = `${window.location.origin}/api/modifica`;
 
 async function popolaCatalogo() {
   const lista = document.getElementById("catalogo");

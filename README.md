@@ -1,113 +1,161 @@
 # Microservizi Libreria
 
-Applicazione Docker Compose per una libreria con due microservizi FastAPI,
-RabbitMQ, due database PostgreSQL separati, frontend statico, worker Node.js,
-registry locale e Portainer.
+Questa applicazione è un esempio concreto di architettura a microservizi per la gestione di prestiti di libri. Include:
+- due API FastAPI (`prestito` e `modifica`)
+- RabbitMQ per la sincronizzazione asincrona
+- due database PostgreSQL separati
+- un worker Node.js per consumare notifiche
+- un frontend statico servito con Nginx
+
+Il progetto può essere eseguito sia con Docker Compose sia su un cluster k3s.
 
 ## Architettura
 
 ```text
-Browser :8080
-  |-- GET /libri, POST /prestiti ---------> prestito :8000 ---> postgres_prestito
-  |                                             |
-  |                                             | RabbitMQ topic exchange libreria.eventi
-  |                                             | routing key prestito.creato
-  |                                             v
-  |-- GET/PATCH /prestiti ---------------> modifica :8001 ---> postgres_modifica
-                                                |
-                                                | RabbitMQ topic exchange libreria.eventi
-                                                | routing key prestito.modificato
-                                                v
-                                          prestito aggiorna il proprio DB
-
-prestito pubblica anche sulla coda durable notifiche, consumata dal worker Node.js.
+Browser --> frontend --> prestito API --> PostgreSQL prestito
+                 |                           |
+                 |                           | RabbitMQ (prestito.creato)
+                 |                           v
+                 |                        modifica API --> PostgreSQL modifica
+                 |
+                 +--> worker (consuma notifiche da RabbitMQ)
 ```
 
-La sincronizzazione tra i DB e' asincrona: ogni servizio scrive solo sul proprio
-database e comunica gli eventi tramite RabbitMQ.
+## Flussi principali
 
-## Flussi
+- `POST /prestiti` sul servizio `prestito`:
+  - salva il prestito nel DB `prestito`
+  - pubblica l’evento `prestito.creato` su RabbitMQ
+  - pubblica una notifica sulla coda `notifiche`
+- `modifica` consuma `prestito.creato` e aggiorna il proprio DB
+- `PATCH /prestiti/{id}` sul servizio `modifica`:
+  - aggiorna la scadenza nel DB `modifica`
+  - pubblica `prestito.modificato`
+- `prestito` riceve `prestito.modificato` e sincronizza il proprio DB
+- `worker` consuma le notifiche dalla coda `notifiche`
 
-- `POST http://localhost:8000/prestiti`: il servizio `prestito` salva sul DB
-  `postgres_prestito`, pubblica `prestito.creato` sull'exchange
-  `libreria.eventi` e pubblica una notifica sulla coda `notifiche`.
-- `modifica` consuma `prestito.creato` dalla coda `modifica.sync.prestiti` e
-  aggiorna il DB `postgres_modifica`.
-- `PATCH http://localhost:8001/prestiti/{id}`: il servizio `modifica` aggiorna
-  la scadenza sul suo DB e pubblica `prestito.modificato`.
-- `prestito` consuma `prestito.modificato` dalla coda `prestito.sync.modifiche`
-  e aggiorna il DB `postgres_prestito`.
-- `worker` consuma la coda `notifiche` con ack manuale e logga le notifiche.
+## 1. Avvio con Docker Compose
 
-## Servizi e porte
+### Prerequisiti
+- Docker Desktop o Docker Engine
+- Docker Compose
 
-| Servizio          | Porta host  | Ruolo                                      |
-|-------------------|-------------|--------------------------------------------|
-| frontend          | 8080        | UI catalogo, creazione e modifica prestiti |
-| prestito          | 8000        | Creazione prestiti, catalogo, sync modifiche |
-| modifica          | 8001        | Modifica prestiti, DB separato, sync prestiti |
-| rabbitmq          | 5672, 15672 | Broker + management UI                     |
-| postgres_prestito | interna     | DB del microservizio prestito              |
-| postgres_modifica | interna     | DB del microservizio modifica              |
-| worker            | interna     | Consumer notifiche                         |
-| registry          | 5000        | Registry Docker locale                     |
-| portainer         | 9443        | Monitoraggio container                     |
-
-## Avvio
-
+### Comando
 ```powershell
 docker compose up -d --build
 ```
 
-Interfacce:
-
+### Accesso locale
 - Frontend: http://localhost:8080
 - Prestito API: http://localhost:8000/docs
 - Modifica API: http://localhost:8001/docs
-- RabbitMQ management: http://localhost:15672
+- RabbitMQ UI: http://localhost:15672
 - Portainer: https://localhost:9443
 
-Le credenziali sono nel file `.env`.
+### Verifica rapida
+```powershell
+docker compose logs -f prestito modifica worker
+```
 
-## Verifica rapida
-
-1. Apri http://localhost:8080 e crea un prestito.
-2. Dopo pochi istanti il prestito appare nella sezione "Modifica prestiti",
-   letta dal microservizio `modifica`.
-3. Cambia la scadenza e salva.
-4. Controlla che il DB di `prestito` sia aggiornato in modo asincrono:
-
+### Controllo dei database
 ```powershell
 docker exec -it lib-postgres-prestito psql -U libreria -d libreria -c "SELECT id, utente, libro, scadenza FROM prestiti ORDER BY id DESC;"
 docker exec -it lib-postgres-modifica psql -U libreria -d libreria_modifica -c "SELECT id, utente, libro, scadenza FROM prestiti_modificabili ORDER BY id DESC;"
 ```
 
-Log utili:
-
-```powershell
-docker compose logs -f prestito modifica worker
-```
-
-## Build e registry locale
-
-```powershell
-docker compose up -d registry
-docker compose build prestito modifica worker frontend
-docker compose push prestito modifica worker frontend
-curl.exe http://localhost:5000/v2/_catalog
-```
-
-## Scaling worker
-
-Il worker non espone porte, quindi puo' essere scalato senza conflitti:
-
-```powershell
-docker compose up -d --scale worker=3
-```
-
-## Teardown
-
+### Teardown
 ```powershell
 docker compose down
 docker compose down -v
+```
+
+## 2. Avvio su k3s
+
+### Prerequisiti
+- cluster k3s attivo
+- `kubectl` configurato per il cluster
+- Docker disponibile per costruire le immagini
+
+### Costruire le immagini
+```powershell
+docker build -t prestito:latest ./prestito
+docker build -t modifica:latest ./modifica
+docker build -t worker:latest ./worker
+docker build -t frontend:latest ./frontend
+```
+
+### Rendere disponibili le immagini al cluster
+Questo è il punto critico per k3s. Se il cluster non può vedere il Docker daemon locale, i pod falliranno con `ImagePullBackOff`.
+
+Le opzioni possibili sono:
+1. usare un registry locale accessibile dal cluster
+2. importare le immagini nel runtime k3s del nodo
+3. usare immagini già pubblicate in un registry pubblico
+
+### Applicare i manifest
+```powershell
+kubectl apply -f k8s
+```
+
+### Verificare il deploy
+```powershell
+kubectl get pods,svc,ingress
+kubectl describe pod <nome-pod>
+kubectl logs <nome-pod>
+```
+
+### Problema comune: ImagePullBackOff
+Se vedi errori come `ImagePullBackOff` o `ErrImagePull`, significa che k3s non trova le immagini richieste. Le cause più frequenti sono:
+- l’immagine non è stata costruita
+- il cluster non può vedere il registry/daemon locale
+- il nome dell’immagine nei manifest non coincide con quello disponibile
+
+### Accesso in k3s
+Dopo che i pod sono Running:
+- Frontend: http://localhost/
+- Prestito API: http://localhost/api/prestito/docs
+- Modifica API: http://localhost/api/modifica/docs
+
+## 3. Debugging su Kubernetes
+
+### Controllare lo stato dei pod
+```powershell
+kubectl get pods -A
+kubectl get pods
+kubectl describe pod <nome-pod>
+```
+
+### Leggere i log
+```powershell
+kubectl logs deploy/prestito
+kubectl logs deploy/modifica
+kubectl logs deploy/worker
+kubectl logs <nome-pod>
+```
+
+### Controllare service e ingress
+```powershell
+kubectl get svc
+kubectl get ingress
+kubectl describe ingress frontend
+kubectl describe ingress prestito
+kubectl describe ingress modifica
+```
+
+### Entrare in un container
+```powershell
+kubectl exec -it <nome-pod> -- sh
+```
+
+## 4. Pulizia
+
+### Docker Compose
+```powershell
+docker compose down
+docker compose down -v
+```
+
+### k3s
+```powershell
+kubectl delete -f k8s
 ```

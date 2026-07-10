@@ -1,20 +1,19 @@
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: prestito
+  name: modifica
   annotations:
     traefik.ingress.kubernetes.io/router.entrypoints: web
-    traefik.ingress.kubernetes.io/router.middlewares: default-strip-prestito-prefix@kubernetescrd
 spec:
   ingressClassName: traefik
   rules:
     - host: localhost
       http:
         paths:
-          - path: /api/prestito
+          - path: /api/modifica
             pathType: Prefix
             backend:
               service:
-                name: prestito
+                name: modifica
                 port:
-                  number: 8000
+                  number: 8001

@@ -1,0 +1,28 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: postgres-prestito-init
+data:
+  01-schema.sql: |
+    CREATE TABLE IF NOT EXISTS libri (
+        id SERIAL PRIMARY KEY,
+        titolo TEXT NOT NULL,
+        autore TEXT NOT NULL
+    );
+
+    CREATE TABLE IF NOT EXISTS prestiti (
+        id SERIAL PRIMARY KEY,
+        utente TEXT NOT NULL,
+        libro TEXT NOT NULL,
+        scadenza DATE NOT NULL,
+        creato_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+        aggiornato_at TIMESTAMPTZ NOT NULL DEFAULT now()
+    );
+
+    INSERT INTO libri (titolo, autore) VALUES
+        ('Il nome della rosa', 'Umberto Eco'),
+        ('1984', 'George Orwell'),
+        ('Il Signore degli Anelli', 'J.R.R. Tolkien'),
+        ('Cent''anni di solitudine', 'Gabriel García Márquez'),
+        ('Il Gattopardo', 'Giuseppe Tomasi di Lampedusa')
+    ON CONFLICT DO NOTHING;
