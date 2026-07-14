@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
         - name: frontend
-          image: 192.168.65.3:5000/lib-frontend:1.0
+          image: registry:5000/lib-frontend:1.0
           imagePullPolicy: Always
           ports:
             - containerPort: 80

@@ -76,21 +76,19 @@ docker compose down -v
 - `kubectl` configurato per il cluster
 - Docker disponibile per costruire le immagini
 
-### Costruire le immagini
+### Costruire e pubblicare le immagini
 ```powershell
-docker build -t prestito:latest ./prestito
-docker build -t modifica:latest ./modifica
-docker build -t worker:latest ./worker
-docker build -t frontend:latest ./frontend
+# 1) avvia il registry interno al cluster
+kubectl apply -f k8s/registry-deployment.yml
+
+# 2) porta il registry locale verso l'host
+kubectl port-forward svc/registry 5000:5000
+
+# 3) costruisci e push delle immagini verso il registry
+./k8s/push-images.sh
 ```
 
-### Rendere disponibili le immagini al cluster
-Questo è il punto critico per k3s. Se il cluster non può vedere il Docker daemon locale, i pod falliranno con `ImagePullBackOff`.
 
-Le opzioni possibili sono:
-1. usare un registry locale accessibile dal cluster
-2. importare le immagini nel runtime k3s del nodo
-3. usare immagini già pubblicate in un registry pubblico
 
 ### Applicare i manifest
 ```powershell
@@ -103,12 +101,6 @@ kubectl get pods,svc,ingress
 kubectl describe pod <nome-pod>
 kubectl logs <nome-pod>
 ```
-
-### Problema comune: ImagePullBackOff
-Se vedi errori come `ImagePullBackOff` o `ErrImagePull`, significa che k3s non trova le immagini richieste. Le cause più frequenti sono:
-- l’immagine non è stata costruita
-- il cluster non può vedere il registry/daemon locale
-- il nome dell’immagine nei manifest non coincide con quello disponibile
 
 ### Accesso in k3s
 Dopo che i pod sono Running:

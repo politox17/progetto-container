@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
         - name: modifica
-          image: 192.168.65.3:5000/lib-modifica:1.0
+          image: registry:5000/lib-modifica:1.0
           imagePullPolicy: Always
           ports:
             - containerPort: 8001
