@@ -102,6 +102,8 @@ kubectl describe pod <nome-pod>
 kubectl logs <nome-pod>
 ```
 
+
+
 ### Accesso in k3s
 Dopo che i pod sono Running:
 - Frontend: http://localhost/
