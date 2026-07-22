@@ -120,6 +120,25 @@ Dopo che i pod sono Running:
 - Prestito API: http://localhost/api/prestito/docs
 - Modifica API: http://localhost/api/modifica/docs
 
+### Accesso a RabbitMQ in k3s
+Il service `rabbitmq` è di tipo `ClusterIP` (non esposto da ingress), quindi
+per raggiungerlo dall'host serve un `port-forward`:
+
+```powershell
+# management UI (http://localhost:15672)
+kubectl port-forward svc/rabbitmq 15672:15672
+
+# broker AMQP (per client esterni su localhost:5672)
+kubectl port-forward svc/rabbitmq 5672:5672
+```
+
+- Management UI: http://localhost:15672
+- Credenziali: utente `libreria`, password `libreria` (dal secret `app-secrets`)
+
+Il `port-forward` resta attivo finché il comando è in esecuzione: tienilo aperto
+in un terminale dedicato. All'interno del cluster i servizi usano invece
+l'hostname `rabbitmq` sulla porta `5672`, senza bisogno di port-forward.
+
 ## 3. Debugging su Kubernetes
 
 ### Controllare lo stato dei pod
