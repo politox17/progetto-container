@@ -19,6 +19,8 @@ spec:
           ports:
             - containerPort: 8001
           env:
+            - name: ROOT_PATH
+              value: /api/modifica
             - name: POSTGRES_HOST
               value: postgres-modifica
             - name: POSTGRES_DB

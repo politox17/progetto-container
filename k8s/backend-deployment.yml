@@ -19,6 +19,8 @@ spec:
           ports:
             - containerPort: 8000
           env:
+            - name: ROOT_PATH
+              value: /api/prestito
             - name: POSTGRES_HOST
               value: postgres-prestito
             - name: POSTGRES_DB

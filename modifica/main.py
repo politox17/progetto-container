@@ -10,7 +10,7 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
-app = FastAPI(title="Libreria Modifica API")
+app = FastAPI(title="Libreria Modifica API", root_path=os.getenv("ROOT_PATH", ""))
 
 _origins = os.getenv(
     "CORS_ORIGINS",
