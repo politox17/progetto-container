@@ -14,8 +14,8 @@ spec:
     spec:
       containers:
         - name: worker
-          image: registry.default.svc.cluster.local:5000/lib-worker:1.0
-          imagePullPolicy: Always
+          image: lib-worker:1.0
+          imagePullPolicy: IfNotPresent
           env:
             - name: RABBITMQ_HOST
               valueFrom:

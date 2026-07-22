@@ -14,8 +14,8 @@ spec:
     spec:
       containers:
         - name: prestito
-          image: registry.default.svc.cluster.local:5000/lib-prestito:1.0
-          imagePullPolicy: Always
+          image: lib-prestito:1.0
+          imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 8000
           env:

@@ -14,8 +14,8 @@ spec:
     spec:
       containers:
         - name: modifica
-          image: registry.default.svc.cluster.local:5000/lib-modifica:1.0
-          imagePullPolicy: Always
+          image: lib-modifica:1.0
+          imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 8001
           env:

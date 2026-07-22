@@ -1,0 +1,17 @@
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: strip-prestito-prefix
+spec:
+  stripPrefix:
+    prefixes:
+      - /api/prestito
+---
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: strip-modifica-prefix
+spec:
+  stripPrefix:
+    prefixes:
+      - /api/modifica

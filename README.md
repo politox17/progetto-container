@@ -72,20 +72,30 @@ docker compose down -v
 ## 2. Avvio su k3s
 
 ### Prerequisiti
-- cluster k3s attivo
+- cluster k3s attivo (es. Rancher Desktop in modalità **containerd**)
 - `kubectl` configurato per il cluster
-- Docker disponibile per costruire le immagini
+- `nerdctl` disponibile per costruire le immagini
 
-### Costruire e pubblicare le immagini
-```powershell
-# 1) avvia il registry interno al cluster
-kubectl apply -f k8s/registry-deployment.yml
+> **Nota sull'engine.** Con Rancher Desktop in modalità containerd, `nerdctl` e
+> k3s condividono lo stesso containerd. Le immagini vengono costruite
+> direttamente nel namespace containerd `k8s.io`, quindi il cluster le vede
+> subito **senza bisogno di un registry**. I deployment referenziano le immagini
+> locali (es. `lib-prestito:1.0`) con `imagePullPolicy: IfNotPresent`.
+> Il vecchio approccio con registry interno (`registry.default.svc.cluster.local:5000`)
+> non funzionava perché il containerd del nodo risolve i nomi tramite il resolver
+> dell'host e non tramite CoreDNS, quindi non riusciva a risolvere un nome DNS
+> interno al cluster.
 
-# 2) porta il registry locale verso l'host
-kubectl port-forward svc/registry 5000:5000
-
-# 3) costruisci e push delle immagini verso il registry
+### Costruire le immagini nel cluster
+```bash
+# costruisce lib-prestito, lib-modifica, lib-worker, lib-frontend
+# nel namespace containerd k8s.io usato da k3s
 ./k8s/push-images.sh
+```
+
+In alternativa, una singola immagine:
+```bash
+nerdctl --namespace k8s.io build -t lib-prestito:1.0 ./prestito
 ```
 
 
